@@ -114,7 +114,7 @@ export class GrafyComponent implements OnInit, AfterViewInit {
 
      g_mousemove(event: any){
        if(this.gv_ismouseclick){
-        this.doClick.emit(event);
+        //this.doClick.emit(event);
         this.drawrect(event.offsetX,event.offsetY, 1,1);
        }
      }
