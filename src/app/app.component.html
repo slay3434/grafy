@@ -17,4 +17,7 @@
     <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
   </li>
 </ul>
-
+<button (click)="zmien()">ZMIEN</button>
+<button (click)="rysujprostokat()">Rysuj owal</button>
+<app-grafy [jakas_tresc]="jakas_tresc" (doClick)="showsign($event)" style="margin-left:200px;position:absolute"></app-grafy>
+<div>app{{jakas_tresc}}</div>
