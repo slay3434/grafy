@@ -1,5 +1,6 @@
 import { Component,ViewChild, AfterViewInit,OnInit } from '@angular/core';
 import {GrafyComponent} from './grafy/grafy.component'
+import { GrafySvgComponent } from './grafy-svg/grafy-svg.component'
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
@@ -18,7 +19,7 @@ export class AppComponent implements AfterViewInit  {
 
 ngAfterViewInit(){
  // this.graf = new GrafyComponent();
-
+$("#test").html("dfdf");
 }
 
   public zmien(){

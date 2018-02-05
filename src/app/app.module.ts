@@ -7,9 +7,10 @@ import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
 import { GrafyComponent } from './grafy/grafy.component';
+import { GrafySvgComponent } from './grafy-svg/grafy-svg.component'
 
 import * as $ from 'jquery';
-import { GrafySvgComponent } from './grafy-svg/grafy-svg.component'
+
 
 
 @NgModule({
