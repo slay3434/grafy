@@ -8,13 +8,15 @@ import { HttpModule } from '@angular/http';
 import { AppComponent } from './app.component';
 import { GrafyComponent } from './grafy/grafy.component';
 
-import * as $ from 'jquery'
+import * as $ from 'jquery';
+import { GrafySvgComponent } from './grafy-svg/grafy-svg.component'
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    GrafyComponent
+    GrafyComponent,
+    GrafySvgComponent
   ],
   imports: [
     BrowserModule,
