@@ -4,10 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import * as $ from 'jquery'
-
-//import * as snap from 'snapsvg'
-//import "snapsvg";
-//declare var Snap: any;
+import { SelectorContext } from '@angular/compiler';
 
 declare var Snap: any;
 declare var mina: any;
@@ -28,6 +25,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
  
   ngOnInit() {
     this.s = Snap("#svgCanvas");
+    
     //const s = Snap("#svgCanvas");
      //const c = this.s.circle(50, 50, 10);
 
@@ -41,28 +39,39 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   startX: any=0;
   startY: any=0;
   resize: boolean = false;
+
+  isDrawing= false;
+
   g_mousedown(event: any){
     
    // for(let i in event)
      // console.log(i+": "+event[i]);
 
     //console.log("id:"+event['target'].id);
+    this.startX = event.offsetX;
+    this.startY = event.offsetY;
 
-    this.selected = document.getElementById(event['target'].id);
-
-    // for(let i in this.selected['cx'])
-    //   console.log(i+": "+this.selected[i]);
-
-
-    let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
-    let tmpr = parseInt($("#"+this.selected.id).attr("r"));
-    if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
-      this.resize = true;
+    if(event['target'].id=="svgCanvas"){
+      if(this.selectedShape!=null){
+        this.isDrawing = true;
+      }
     }
+    else{
+
+      this.selected = document.getElementById(event['target'].id);
+      
+      this.s.append(this.selected);
+
+      //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
+      let tmpdist = this.getLength(event.offsetX,event.offsetY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+      let tmpr = parseInt($("#"+this.selected.id).attr("r"));
+      if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
+        this.resize = true;
+      }
 
 
-     this.startX = event.offsetX;
-     this.startY = event.offsetY;
+    
+    }
 
   }
 
@@ -73,8 +82,9 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       let y = (Math.max(this.startY,event.offsetY)-Math.min(this.startY,event.offsetY))*Math.sign(event.offsetY-this.startY)
       if(this.resize){
         let tmpr =  parseInt($("#"+this.selected.id).attr("r"));
-        if((tmpr+x)>5)
+        if((tmpr+x)>5 && (tmpr+x)<$("#svgCanvas").width())
           $("#"+this.selected.id).attr({r:tmpr+x});
+
     
       }
       else{      
@@ -90,12 +100,56 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         $("#"+this.selected.id).attr({cx:tmpx+x, cy: tmpy+y});
       }
     }
+    else if(this.selectedShape!=null && this.isDrawing){
+
+      this.drawElement(event);
+    }
+   
 
   }
 
   g_mouseup(event: any){
     this.selected = null;
     this.resize = false;
+
+    if(this.isDrawing){
+      this.isDrawing = false;
+    }
+
+  }
+
+ 
+  g_mousedblclick(event: any){
+
+    this.test('double'); 
+     
+  }
+
+  selectedShape: any=null;
+
+  drawElement(event: any){
+//console.log(this.s.len(this.startX, this.startY, event.offsetX, event.offsetY));
+    let shape: any;
+    if(true)
+    switch(this.selectedShape){
+      case 'circle':
+        shape = this.s.circle(this.startX, this.startY, this.getLength(this.startX, this.startY, event.offsetX, event.offsetY));
+        break;
+    }
+
+    shape.attr("id","id_"+Date.now());
+    this.addMouseListeners(shape);
+    this.s.add(shape);
+
+  }
+
+  test(value: any){
+    if(value!=null)
+      console.log(value);
+    else{
+      //console.log(this.selectedShape);
+      this.newCircle();
+    }
   }
 
   newCircle(){
@@ -110,10 +164,23 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
    var c = this.s.circle(Math.round(250*Math.random())+10, Math.round(250*Math.random())+10, 30);
    c.attr("id","id_"+Date.now());
-   c.attr("fill", this.getRandomColor());
-   c.mousedown((e: any)=>{this.g_mousedown(e)});
+   c.attr("fill", this.getRandomColor());  
+   this.addMouseListeners(c);
 
   }
+
+  addMouseListeners(object:any){
+ 
+    object.dblclick((e: any)=>{this.g_mousedblclick(e)});
+    object.mousedown((e: any)=>{this.g_mousedown(e)});
+  }
+
+  wyczysc(){
+    this.s.clear();
+  }
+
+
+  //#region help functions
 
   getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -123,5 +190,14 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     }
     return color;
   }
+
+  getLength(x1:number,y1:number, x2:number, y2:number){
+    let rez = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
+
+    return rez;
+  }
+
+
+  //#endregion
 
 }

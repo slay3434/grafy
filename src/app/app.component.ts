@@ -15,24 +15,25 @@ import * as $ from 'jquery'
 export class AppComponent implements AfterViewInit  {
   title = 'app';
 
-  jakas_tresc = "gg";
 
-ngAfterViewInit(){
- // this.graf = new GrafyComponent();
-$("#test").html("dfdf");
-}
+
+  ngAfterViewInit(){
+    // this.graf = new GrafyComponent();
+    $("#test").html("dfdf");
+  }
+
+  //#region canvas grafy.component
+
+  jakas_tresc = "gg";
 
   public zmien(){
     console.log("z apki");  
-//     this.graf.showText("ghntnbt");
-// this.graf.jakas_tresc = "jjjjjjj";
-   this.jakas_tresc="kkk";
-   //$("#aa").html("kkkkkkkk");
-this.graf.zz(); 
-this.graf.jakas_tresc=(Math.random()*1000).toString();
+
+    this.jakas_tresc="kkk";
+    //$("#aa").html("kkkkkkkk");
+    this.graf.zz(); 
+    this.graf.jakas_tresc=(Math.random()*1000).toString();
   }
-
-
   //@ViewChild('app-grafy') graf: GrafyComponent;
   @ViewChild(GrafyComponent) graf;
 
@@ -47,6 +48,8 @@ this.graf.jakas_tresc=(Math.random()*1000).toString();
 
     this.graf.drawrect(x,y,r,r);
   }
+
+  //#endregion
 
 }
 
