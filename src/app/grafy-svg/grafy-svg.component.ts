@@ -128,7 +128,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   selectedShape: any=null;
 
   drawElement(event: any){
-//console.log(this.s.len(this.startX, this.startY, event.offsetX, event.offsetY));
+    //console.log(this.s.len(this.startX, this.startY, event.offsetX, event.offsetY));
     let shape: any;
     if(true)
     switch(this.selectedShape){
