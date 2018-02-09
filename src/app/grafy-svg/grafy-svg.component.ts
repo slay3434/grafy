@@ -5,6 +5,7 @@ import { HttpModule } from '@angular/http';
 
 import * as $ from 'jquery'
 import { SelectorContext } from '@angular/compiler';
+//import { parse } from 'path';
 
 declare var Snap: any;
 declare var mina: any;
@@ -43,61 +44,92 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   isDrawing= false;
 
   g_mousedown(event: any){
-    
-   // for(let i in event)
-     // console.log(i+": "+event[i]);
 
-    //console.log("id:"+event['target'].id);
-    this.startX = event.offsetX;
-    this.startY = event.offsetY;
+    if(event['target'].id!=""){
 
-    if(event['target'].id=="svgCanvas"){
-      if(this.selectedShape!=null){
-        this.isDrawing = true;
+      this.startX = event.offsetX;
+      this.startY = event.offsetY;
+
+      if(event['target'].id=="svgCanvas"){
+        if(this.selectedShape!=null){
+        // this.isDrawing = true;
+          this.drawElement(event);
+        }
       }
-    }
-    else{
+      else{
 
-      this.selected = document.getElementById(event['target'].id);
-      
-      this.s.append(this.selected);
+        this.selected = document.getElementById(event['target'].id);
+        
+        //wyciaga element na wierzch
+        this.s.append(this.selected);
 
-      //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
-      let tmpdist = this.getLength(event.offsetX,event.offsetY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-      let tmpr = parseInt($("#"+this.selected.id).attr("r"));
-      if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
-        this.resize = true;
+        if(this.selected.tagName!=null){
+          switch(this.selected.tagName){
+            case 'circle':
+              //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
+              let tmpdist = this.getLength(event.offsetX,event.offsetY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+              let tmpr = parseInt($("#"+this.selected.id).attr("r"));
+              if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
+                this.resize = true;
+              }
+              break;
+            case 'rect':
+            if(this.isOnRectangleBorder(event)){
+              this.resize = true;
+            }
+          }
+
+        }      
       }
-
-
-    
     }
 
   }
 
   g_mousemove(event: any){
 
+    
+  
     if(this.selected!= null){
       let x = (Math.max(this.startX,event.offsetX)-Math.min(this.startX,event.offsetX))*Math.sign(event.offsetX-this.startX)
       let y = (Math.max(this.startY,event.offsetY)-Math.min(this.startY,event.offsetY))*Math.sign(event.offsetY-this.startY)
       if(this.resize){
-        let tmpr =  parseInt($("#"+this.selected.id).attr("r"));
-        if((tmpr+x)>5 && (tmpr+x)<$("#svgCanvas").width())
-          $("#"+this.selected.id).attr({r:tmpr+x});
+        if(this.selected.tagName!=null)
+        switch(this.selected.tagName.toLowerCase()){
+          case 'circle':
+            let tmpr =  parseInt($("#"+this.selected.id).attr("r"));
+            if((tmpr+x)>5 && (tmpr+x)<$("#svgCanvas").width())
+              $("#"+this.selected.id).attr({r:tmpr+x});
+            break;
+          case 'rect':
+           
+              let w =  parseInt($("#"+this.selected.id).attr("width"));
+              let h =  parseInt($("#"+this.selected.id).attr("height"));
+              if(((w+x)>5 && (w+x<$("#svgCanvas").width())) && (((h+y)>5 && (h+y)<$("#svgCanvas").height())))
+                $("#"+this.selected.id).attr({width:w+x, height:h+y});
+            
+            break;
 
-    
+        
+        }
+
       }
       else{      
 
-        this.startX =event.offsetX;
-        this.startY =event.offsetY;
-
-        
-        let tmpx =  parseInt($("#"+this.selected.id).attr("cx"));
-        let tmpy =   parseInt($("#"+this.selected.id).attr("cy"));
-        //console.log("tmpx-"+tmpx+", tmpy-"+tmpy);
-
-        $("#"+this.selected.id).attr({cx:tmpx+x, cy: tmpy+y});
+        // this.startX =event.offsetX;
+        // this.startY =event.offsetY;
+        if(this.selected.tagName!=null)
+        switch(this.selected.tagName.toLowerCase()){
+          case 'circle':
+            let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
+            let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
+            $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+            break;
+          case 'rect':
+            let tmprx =  parseInt($("#"+this.selected.id).attr("x"));
+            let tmpry =   parseInt($("#"+this.selected.id).attr("y"));
+            $("#"+this.selected.id).attr({x:tmprx+x, y: tmpry+y});
+          break;
+        }
       }
     }
     else if(this.selectedShape!=null && this.isDrawing){
@@ -106,6 +138,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     }
    
 
+    this.startX =event.offsetX;
+    this.startY =event.offsetY;
   }
 
   g_mouseup(event: any){
@@ -133,13 +167,26 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     if(true)
     switch(this.selectedShape){
       case 'circle':
-        shape = this.s.circle(this.startX, this.startY, this.getLength(this.startX, this.startY, event.offsetX, event.offsetY));
+        //shape = this.s.circle(this.startX, this.startY, this.getLength(this.startX, this.startY, event.offsetX, event.offsetY));
+        shape = this.s.circle(this.startX, this.startY,30);
+        // shape.attr({"id":"id_"+Date.now(),"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
+        break;
+      case 'rect':
+        shape = this.s.rect(this.startX,this.startY, 40,30);
+        // shape.attr({"id":"id_"+Date.now(), style:"fill='white';stroke='skyblue';stroke-width=2"});
         break;
     }
 
-    shape.attr("id","id_"+Date.now());
+    
+    //shape.attr("fill",'none');
+    shape.attr({"id":"id_"+Date.now(),"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
+
     this.addMouseListeners(shape);
     this.s.add(shape);
+    this.selected = shape;
+    this.isDrawing = false;
+    this.selectedShape = null;
+    this.resize = true;
 
   }
 
@@ -197,6 +244,27 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     return rez;
   }
 
+
+  isOnRectangleBorder(event: any){
+    let w =  parseInt($("#"+this.selected.id).attr("width"));
+    let h =  parseInt($("#"+this.selected.id).attr("height"));
+    let x =  parseInt($("#"+this.selected.id).attr("x"));
+    let y =  parseInt($("#"+this.selected.id).attr("y"));
+
+    let cx = event.offsetX;
+    let cy = event.offsetY;
+
+    let rez = false;
+
+    if(
+      (((cy>(y-3))&&(cy<(y+h+3)))&&((cx>(x+w-3))&&(cx<(x+w+3)))) 
+      ||
+      (((cy>(y+h-3))&&(cy<(y+h+3)))&&((cx>(x-3))&&(cx<(x+w+3))))
+    )
+    rez = true;
+
+    return rez;
+  }
 
   //#endregion
 
