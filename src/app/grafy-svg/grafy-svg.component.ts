@@ -27,6 +27,9 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.s = Snap("#svgCanvas");
     
+    //$("#wasl2").animate({cx:50},1000);
+    var z = this.s.select('#wasl3');
+    z.transform("r45");
     //const s = Snap("#svgCanvas");
      //const c = this.s.circle(50, 50, 10);
 
@@ -47,8 +50,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
     if(event['target'].id!=""){
 
-      this.startX = event.offsetX;
-      this.startY = event.offsetY;
+      this.startX = event.offsetX*(this.scale);
+      this.startY = event.offsetY*(this.scale);
 
       if(event['target'].id=="svgCanvas"){
         if(this.selectedShape!=null){
@@ -67,8 +70,12 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
           switch(this.selected.tagName){
             case 'circle':
               //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
-              let tmpdist = this.getLength(event.offsetX,event.offsetY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-              let tmpr = parseInt($("#"+this.selected.id).attr("r"));
+              //*(1/this.scale)
+             // let tmpdist = this.getLength(this.startX,this.startY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+             let tmpdist = this.getLength(this.startX,this.startY,parseInt(this.s.select("#"+this.selected.id).attr("cx"))*(this.scale),parseInt(this.s.select("#"+this.selected.id).attr("cy"))*(this.scale));
+              //let tmpr = parseInt($("#"+this.selected.id).attr("r"));
+              let tmpr = parseInt(this.s.select("#"+this.selected.id).attr("r"));
+              console.log(tmpdist+"    "+tmpr + "    "+this.s.select("#"+this.selected.id).attr("cx"));
               if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
                 this.resize = true;
               }
@@ -120,9 +127,11 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
           case 'circle':
-            let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
-            let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
-            $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+             let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
+             let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
+             $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+              
+              //(this.s.select("#"+this.selected.id)).transform("translate("+(tmpcx+x)+","+(tmpcy+y)+")");
             break;
           case 'rect':
             let tmprx =  parseInt($("#"+this.selected.id).attr("x"));
@@ -159,6 +168,26 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
      
   }
 
+  scale: number=1;
+  g_mousewheel(event: any){
+    //console.log(event);
+    if(event['wheelDelta']>0){
+      this.scale +=0.1; 
+    }
+    else
+      if(this.scale>0.2)
+       this.scale -=0.1;
+
+      this.scale =  Math.round(this.scale * 100) / 100
+
+      console.log(this.scale+" wdelta"+event['wheelDelta']);
+    var ff = this.s.selectAll('*');
+    ff.forEach(element => {
+      element.transform('s'+this.scale);
+    });
+    //this.s.transform('s'+this.scale);
+  }
+
   selectedShape: any=null;
 
   drawElement(event: any){
@@ -188,6 +217,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     this.selectedShape = null;
     this.resize = true;
 
+    this.selected.transform('s'+this.scale);
+
   }
 
   test(value: any){
@@ -195,7 +226,16 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       console.log(value);
     else{
       //console.log(this.selectedShape);
-      this.newCircle();
+      //var z = this.s.scale(10);
+      // var zz = new Snap.Matrix();
+      // zz.scale(0.4);
+    var ff = this.s.selectAll('*');
+    ff.forEach(element => {
+      element.transform('S0.4');
+    });
+      //ff.transform('s0.4');
+
+      //this.newCircle();
     }
   }
 
@@ -246,16 +286,16 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
 
   isOnRectangleBorder(event: any){
-    let w =  parseInt($("#"+this.selected.id).attr("width"));
-    let h =  parseInt($("#"+this.selected.id).attr("height"));
-    let x =  parseInt($("#"+this.selected.id).attr("x"));
-    let y =  parseInt($("#"+this.selected.id).attr("y"));
+    let w =  parseInt($("#"+this.selected.id).attr("width"))*(1/this.scale);
+    let h =  parseInt($("#"+this.selected.id).attr("height"))*(1/this.scale);
+    let x =  parseInt($("#"+this.selected.id).attr("x"))*(1/this.scale);
+    let y =  parseInt($("#"+this.selected.id).attr("y"))*(1/this.scale);
 
-    let cx = event.offsetX;
-    let cy = event.offsetY;
+    let cx = event.offsetX*(1/this.scale);
+    let cy = event.offsetY*(1/this.scale);
 
     let rez = false;
-
+    console.log((x+w)+"    "+(y+h) +"   "+cx+"    "+cy);
     if(
       (((cy>(y-3))&&(cy<(y+h+3)))&&((cx>(x+w-3))&&(cx<(x+w+3)))) 
       ||
