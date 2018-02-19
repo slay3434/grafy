@@ -110,6 +110,14 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         if(this.selected.tagName!=null){
           switch(this.selected.tagName){
             case 'circle':
+
+            let vbb =  this.s.attr('viewBox');
+            let tmp_p = this.svg.createSVGPoint();
+            tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
+            tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
+            this.s.rect(tmp_p.x,tmp_p.y,2,2);
+
+
               //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
               //*(1/this.scale)
               let vb  = this.s.attr('viewBox');
@@ -118,17 +126,15 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
               //let tmpr = parseInt($("#"+this.selected.id).attr("r"));
               let tmpr = parseInt($("#"+this.selected.id).attr("r"));//*(1/this.scale);
 
-              let tmp_p = this.svg.createSVGPoint();
-              tmp_p.x = event.offsetX;
-              tmp_p.y = event.offsetY; 
-              tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+             
+              //tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
 
               let tdlugosc =this.getLength((tmp_p.x),(tmp_p.y),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
               let thhh=Snap.len(tmp_p.x,tmp_p.y,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
               //this.getLength(tmp_p.x,tmp_p.y,tmpc.x,tmpc.y);
               //this.s.rect(event.offsetX,event.offsetY,2,2);
               //this.s.rect(parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")),2,2);
-              this.s.rect(tmp_p.x,tmp_p.y,2,2);
+             
               console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
               if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
                 this.resize = true;
