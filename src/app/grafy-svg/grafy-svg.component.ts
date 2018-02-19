@@ -18,6 +18,12 @@ declare var mina: any;
 export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   s :any;
+  svg: any;
+
+
+  orgVBwidth:number;
+  orgVBheight:number;
+
   constructor() {   
   }
 
@@ -25,10 +31,17 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
  
   ngOnInit() {
     this.s = Snap("#svgCanvas");
+    this.svg = document.getElementById('svgCanvas');
+    this.orgVBwidth = $("#svgCanvas").width();
+    this.orgVBheight=$("#svgCanvas").height();
+
+    this.s.attr({viewBox:0+","+0+","+this.orgVBwidth+","+this.orgVBheight})
     
     //$("#wasl2").animate({cx:50},1000);
-    var z = this.s.select('#wasl3');
-    z.transform("t200,100r45s2");
+    // var z = this.s.select('#wasl3');
+    // z.transform("t200,100r45s2");
+
+
     //z.transform("t200,100");
     //const s = Snap("#svgCanvas");
      //const c = this.s.circle(50, 50, 10);
@@ -45,19 +58,20 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   resize: boolean = false;
 
   isDrawing= false;
+  isDragged = false;
 
   g_mousedown(event: any){
-
+  
  
-    if(this.selected){
-      console.log("******************************start********************");
-      console.log("x:"+event.offsetX+", y:"+event.offsetY);
-      console.log("1/x:"+event.offsetX*(1/this.scale)+", 1/y:"+event.offsetY*(1/this.scale));
-      console.log("cx:"+$("#"+this.selected.id).attr("cx"));
-      console.log("cy:"+$("#"+this.selected.id).attr("cy"));
-      console.log("r:"+$("#"+this.selected.id).attr("r"));
-      console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%stop%%%%%%%%%%%%%%%%%%%");
-    }
+    // if(this.selected){
+    //   console.log("******************************start********************");
+    //   console.log("x:"+event.offsetX+", y:"+event.offsetY);
+    //   console.log("1/x:"+event.offsetX*(1/this.scale)+", 1/y:"+event.offsetY*(1/this.scale));
+    //   console.log("cx:"+$("#"+this.selected.id).attr("cx"));
+    //   console.log("cy:"+$("#"+this.selected.id).attr("cy"));
+    //   console.log("r:"+$("#"+this.selected.id).attr("r"));
+    //   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%stop%%%%%%%%%%%%%%%%%%%");
+    // }
  
 
     if(event['target'].id!=""){
@@ -65,15 +79,30 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       this.startX = event.offsetX//*(this.scale);
       this.startY = event.offsetY//*(this.scale);
 
+  
+
+
+
+
       if(event['target'].id=="svgCanvas"){
         if(this.selectedShape!=null){
         // this.isDrawing = true;
           this.drawElement(event);
         }
+        else
+        this.isDragged = true;
       }
       else{
 
         this.selected = document.getElementById(event['target'].id);
+
+        // console.log('ccccccccccc x:'+event.offsetX+' y:'+event.offsetY);
+        // let tmp_p = this.svg.createSVGPoint();
+        // tmp_p.x = event.offsetX;
+        // tmp_p.y = event.offsetY; 
+        // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse()); 
+        // console.log('ddddddddddd x:'+tmp_p.x+' y:'+tmp_p.y);
+  
         
         //wyciaga element na wierzch
         this.s.append(this.selected);
@@ -83,11 +112,24 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
             case 'circle':
               //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
               //*(1/this.scale)
-              let tmpdist = this.getLength(this.startX,this.startY,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+              let vb  = this.s.attr('viewBox');
+              let tmpdist = this.getLength((this.startX),(this.startY),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
             // let tmpdist = this.getLength(this.startX,this.startY,parseInt(this.s.select("#"+this.selected.id).attr("cx"))*(this.scale),parseInt(this.s.select("#"+this.selected.id).attr("cy"))*(this.scale));
               //let tmpr = parseInt($("#"+this.selected.id).attr("r"));
-              let tmpr = parseInt($("#"+this.selected.id).attr("r"))*(this.scale);
-              console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx"));
+              let tmpr = parseInt($("#"+this.selected.id).attr("r"));//*(1/this.scale);
+
+              let tmp_p = this.svg.createSVGPoint();
+              tmp_p.x = event.offsetX;
+              tmp_p.y = event.offsetY; 
+              tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+
+              let tdlugosc =this.getLength((tmp_p.x),(tmp_p.y),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+              let thhh=Snap.len(tmp_p.x,tmp_p.y,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+              //this.getLength(tmp_p.x,tmp_p.y,tmpc.x,tmpc.y);
+              //this.s.rect(event.offsetX,event.offsetY,2,2);
+              //this.s.rect(parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")),2,2);
+              this.s.rect(tmp_p.x,tmp_p.y,2,2);
+              console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
               if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
                 this.resize = true;
               }
@@ -106,13 +148,35 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   g_mousemove(event: any){
 
+
+
     let eventX=event.offsetX;
     let eventY=event.offsetY;
+
+
     
   
     if(this.selected!= null){
+
+
+     
+
+
       let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
       let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
+
+
+      //console.log('ccccccccccc x:'+eventX+' y:'+eventY);
+      // let tmp_p = this.svg.createSVGPoint();
+      // tmp_p.x = x;
+      // tmp_p.y = y; 
+      // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+      // x = tmp_p.x;
+      // eventY = y;
+     // console.log('ddddddddddd x:'+eventX+' y:'+eventY);
+
+
+
       if(this.resize){
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
@@ -141,27 +205,66 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
           case 'circle':
-            //  let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
-            //  let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
-            //  $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+             let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
+             let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
+
+              // let tmp_p = this.svg.createSVGPoint();
+              // tmp_p.x = tmpcx;
+              // tmp_p.y = tmpcy; 
+              // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+              // tmpcx = tmp_p.x;
+              // tmpcy = tmp_p.y;
+
+             $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+             //$("#"+this.selected.id).attr({cx:tmpcx, cy: tmpcy});
          
-            (this.s.select("#"+this.selected.id)).transform("t"+(x)+","+(y)+"");     
-            var m =(this.s.select("#"+this.selected.id)).transform().localMatrix.split();
-            console.log("m:"+m);
-          
-          
+            //(this.s.select("#"+this.selected.id)).transform("t"+(x)+","+(y)+"");                         
             break;
-          case 'rect':
+          case 'rect':      
             let tmprx =  parseInt($("#"+this.selected.id).attr("x"));
             let tmpry =   parseInt($("#"+this.selected.id).attr("y"));
+              // let tmp_p = this.svg.createSVGPoint();
+              // tmp_p.x = tmprx;
+              // tmp_p.y = tmpry; 
+              // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+              // tmprx = tmp_p.x;
+              // tmpry = tmp_p.y;
+             
             $("#"+this.selected.id).attr({x:tmprx+x, y: tmpry+y});
           break;
         }
+
+        // var m =(this.s.select("#"+this.selected.id)).transform().localMatrix.split();
+        // for(var i in m)
+        //   console.log("m:"+m[i]);
+        //console.log(this.s.select("#"+this.selected.id).transform().local);
       }
     }
     else if(this.selectedShape!=null && this.isDrawing){
 
       this.drawElement(event);
+    }
+    else{
+      if(this.isDragged){      
+        let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
+        let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
+        
+        // var ff = this.s.selectAll('*');
+        // ff.forEach(element => {
+       
+        //   try{
+        //     let zz = element.transform().local;
+        //     if(zz)
+        //       element.transform(zz+',t'+x+','+y);
+        //     else
+        //       element.transform('t'+','+y);
+        //   }catch(ex){}
+        // });
+
+        let vb =  this.s.attr('viewBox');
+        //console.log(vb);
+        this.s.attr({viewBox:(parseInt(vb.x)-x)+","+(parseInt(vb.y)-y)+","+vb.w+","+vb.h})
+      }
     }
    
 
@@ -170,6 +273,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   }
 
   g_mouseup(event: any){
+    this.isDragged = false;
     this.selected = null;
     this.resize = false;
 
@@ -196,13 +300,20 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       if(this.scale>0.2)
        this.scale -=0.1;
 
+  
+
     //  this.scale =  Math.round(this.scale * 100) / 100
 
       //console.log(this.scale+" wdelta"+event['wheelDelta']);
-    var ff = this.s.selectAll('*');
-    ff.forEach(element => {
-      element.transform('s'+this.scale);
-    });
+    // var ff = this.s.selectAll('*');
+    // ff.forEach(element => {
+    //   element.transform('s'+this.scale);
+    // });
+    let vb  = this.s.attr('viewBox');
+    this.s.attr({viewBox:vb.x+","+vb.y+","+this.orgVBwidth*(1/this.scale)+","+this.orgVBheight*(1/this.scale)})
+
+    
+  
     //this.s.transform('s'+this.scale);
   }
 
@@ -313,7 +424,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     let cy = event.offsetY*(1/this.scale);
 
     let rez = false;
-    console.log((x+w)+"    "+(y+h) +"   "+cx+"    "+cy);
+    //console.log((x+w)+"    "+(y+h) +"   "+cx+"    "+cy);
     if(
       (((cy>(y-3))&&(cy<(y+h+3)))&&((cx>(x+w-3))&&(cx<(x+w+3)))) 
       ||
