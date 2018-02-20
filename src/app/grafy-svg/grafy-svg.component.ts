@@ -78,10 +78,13 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
       this.startX = event.offsetX//*(this.scale);
       this.startY = event.offsetY//*(this.scale);
-
-  
-
-
+      
+      let vbb =  this.s.attr('viewBox');
+      let tmp_p = this.svg.createSVGPoint();
+      tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
+      tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
+      var t =this.s.rect(tmp_p.x, tmp_p.y,5,5);
+      t.attr({'fill':'orange'});
 
 
       if(event['target'].id=="svgCanvas"){
@@ -95,19 +98,12 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       else{
 
         this.selected = document.getElementById(event['target'].id);
-
-        // console.log('ccccccccccc x:'+event.offsetX+' y:'+event.offsetY);
-        // let tmp_p = this.svg.createSVGPoint();
-        // tmp_p.x = event.offsetX;
-        // tmp_p.y = event.offsetY; 
-        // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse()); 
-        // console.log('ddddddddddd x:'+tmp_p.x+' y:'+tmp_p.y);
-  
         
         //wyciaga element na wierzch
         this.s.append(this.selected);
 
         if(this.selected.tagName!=null){
+          console.log(this.selected);
           switch(this.selected.tagName){
             case 'circle':
 
@@ -115,28 +111,17 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
             let tmp_p = this.svg.createSVGPoint();
             tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
             tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
-            this.s.rect(tmp_p.x,tmp_p.y,2,2);
-
-
-              //let tmpdist = Math.sqrt(Math.pow(event.offsetX-parseInt($("#"+this.selected.id).attr("cx")),2)+Math.pow(event.offsetY-parseInt($("#"+this.selected.id).attr("cy")),2));
-              //*(1/this.scale)
+            // this.s.rect(tmp_p.x,tmp_p.y,2,2);
               let vb  = this.s.attr('viewBox');
-              let tmpdist = this.getLength((this.startX),(this.startY),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-            // let tmpdist = this.getLength(this.startX,this.startY,parseInt(this.s.select("#"+this.selected.id).attr("cx"))*(this.scale),parseInt(this.s.select("#"+this.selected.id).attr("cy"))*(this.scale));
-              //let tmpr = parseInt($("#"+this.selected.id).attr("r"));
-              let tmpr = parseInt($("#"+this.selected.id).attr("r"));//*(1/this.scale);
+              //let tmpdist = this.getLength((this.startX),(this.startY),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
 
-             
+              let tmpr = parseInt($("#"+this.selected.id).attr("r"));             
               //tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
 
               let tdlugosc =this.getLength((tmp_p.x),(tmp_p.y),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-              let thhh=Snap.len(tmp_p.x,tmp_p.y,parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-              //this.getLength(tmp_p.x,tmp_p.y,tmpc.x,tmpc.y);
-              //this.s.rect(event.offsetX,event.offsetY,2,2);
-              //this.s.rect(parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")),2,2);
-             
-              console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
-              if(tmpdist>tmpr-3 && tmpdist<tmpr+3){    
+                          
+              //console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
+              if(tdlugosc>tmpr-3 && tdlugosc<tmpr+3){    
                 this.resize = true;
               }
               break;
@@ -153,35 +138,13 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   }
 
   g_mousemove(event: any){
-
-
-
     let eventX=event.offsetX;
     let eventY=event.offsetY;
-
-
-    
-  
+      
     if(this.selected!= null){
-
-
      
-
-
       let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
       let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
-
-
-      //console.log('ccccccccccc x:'+eventX+' y:'+eventY);
-      // let tmp_p = this.svg.createSVGPoint();
-      // tmp_p.x = x;
-      // tmp_p.y = y; 
-      // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
-      // x = tmp_p.x;
-      // eventY = y;
-     // console.log('ddddddddddd x:'+eventX+' y:'+eventY);
-
-
 
       if(this.resize){
         if(this.selected.tagName!=null)
@@ -205,37 +168,18 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
       }
       else{      
-
-        // this.startX =event.offsetX;
-        // this.startY =event.offsetY;
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
           case 'circle':
              let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
              let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
 
-              // let tmp_p = this.svg.createSVGPoint();
-              // tmp_p.x = tmpcx;
-              // tmp_p.y = tmpcy; 
-              // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
-              // tmpcx = tmp_p.x;
-              // tmpcy = tmp_p.y;
-
              $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
-             //$("#"+this.selected.id).attr({cx:tmpcx, cy: tmpcy});
-         
-            //(this.s.select("#"+this.selected.id)).transform("t"+(x)+","+(y)+"");                         
+                      
             break;
           case 'rect':      
             let tmprx =  parseInt($("#"+this.selected.id).attr("x"));
             let tmpry =   parseInt($("#"+this.selected.id).attr("y"));
-              // let tmp_p = this.svg.createSVGPoint();
-              // tmp_p.x = tmprx;
-              // tmp_p.y = tmpry; 
-              // tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
-              // tmprx = tmp_p.x;
-              // tmpry = tmp_p.y;
-             
             $("#"+this.selected.id).attr({x:tmprx+x, y: tmpry+y});
           break;
         }
@@ -254,26 +198,12 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       if(this.isDragged){      
         let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
         let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
-        
-        // var ff = this.s.selectAll('*');
-        // ff.forEach(element => {
-       
-        //   try{
-        //     let zz = element.transform().local;
-        //     if(zz)
-        //       element.transform(zz+',t'+x+','+y);
-        //     else
-        //       element.transform('t'+','+y);
-        //   }catch(ex){}
-        // });
 
         let vb =  this.s.attr('viewBox');
-        //console.log(vb);
         this.s.attr({viewBox:(parseInt(vb.x)-x)+","+(parseInt(vb.y)-y)+","+vb.w+","+vb.h})
       }
     }
    
-
     this.startX =event.offsetX//*(this.scale);
     this.startY =event.offsetY//*(this.scale);
   }
@@ -298,35 +228,40 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   scale: number=1;
   g_mousewheel(event: any){
-    //console.log(event);
+    let vb =  this.s.attr('viewBox');
+
+    let tmp1_p = this.svg.createSVGPoint();
+    tmp1_p.x = (event.offsetX*(1/this.scale));
+    tmp1_p.y = (event.offsetY*(1/this.scale));
+
+    let sign = 1
     if(event['wheelDelta']>0){
-      this.scale +=0.1; 
+      this.scale +=0.2; 
     }
-    else
-      if(this.scale>0.2)
-       this.scale -=0.1;
+    else{
+      if(this.scale>0.4){
+       this.scale -=0.2;  
+       sign = -1    
+      }
+    }
+   
+    let tmp2_p = this.svg.createSVGPoint();
+    tmp2_p.x = (event.offsetX*(1/this.scale));
+    tmp2_p.y = (event.offsetY*(1/this.scale));
 
-  
+    this.s.attr({viewBox:(vb.x+(tmp2_p.x-tmp1_p.x)*(Math.sign(tmp2_p.x-tmp1_p.x))*sign)+","+(vb.y+(tmp2_p.y-tmp1_p.y)*(Math.sign(tmp2_p.y-tmp1_p.y))*sign)+","+this.orgVBwidth*(1/this.scale)+","+this.orgVBheight*(1/this.scale)});
 
-    //  this.scale =  Math.round(this.scale * 100) / 100
-
-      //console.log(this.scale+" wdelta"+event['wheelDelta']);
-    // var ff = this.s.selectAll('*');
-    // ff.forEach(element => {
-    //   element.transform('s'+this.scale);
-    // });
-    let vb  = this.s.attr('viewBox');
-    this.s.attr({viewBox:vb.x+","+vb.y+","+this.orgVBwidth*(1/this.scale)+","+this.orgVBheight*(1/this.scale)})
-
-    
-  
     //this.s.transform('s'+this.scale);
   }
 
   selectedShape: any=null;
 
   drawElement(event: any){
-    //console.log(this.s.len(this.startX, this.startY, event.offsetX, event.offsetY));
+    let vb =  this.s.attr('viewBox');
+    //let tmp_p = this.svg.createSVGPoint();
+    this.startX = event.offsetX*(1/this.scale)+vb.x;
+    this.startY = event.offsetY*(1/this.scale)+vb.y; 
+
     let shape: any;
     if(true)
     switch(this.selectedShape){
@@ -352,7 +287,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     this.selectedShape = null;
     this.resize = true;
 
-    this.selected.transform('s'+this.scale);
+    //this.selected.transform('s'+this.scale);
 
   }
 
@@ -421,13 +356,22 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
 
   isOnRectangleBorder(event: any){
-    let w =  parseInt($("#"+this.selected.id).attr("width"))*(1/this.scale);
-    let h =  parseInt($("#"+this.selected.id).attr("height"))*(1/this.scale);
-    let x =  parseInt($("#"+this.selected.id).attr("x"))*(1/this.scale);
-    let y =  parseInt($("#"+this.selected.id).attr("y"))*(1/this.scale);
 
-    let cx = event.offsetX*(1/this.scale);
-    let cy = event.offsetY*(1/this.scale);
+
+    let vbb =  this.s.attr('viewBox');
+    // let tmp_p = this.svg.createSVGPoint();
+    // tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
+    // tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
+    // this.s.rect(tmp_p.x,tmp_p.y,2,2);
+
+
+    let w =  parseInt($("#"+this.selected.id).attr("width"))//*(1/this.scale);
+    let h =  parseInt($("#"+this.selected.id).attr("height"))//*(1/this.scale);
+    let x =  parseInt($("#"+this.selected.id).attr("x"))//*(1/this.scale);
+    let y =  parseInt($("#"+this.selected.id).attr("y"))//*(1/this.scale);
+
+    let cx = event.offsetX*(1/this.scale)+vbb.x;
+    let cy = event.offsetY*(1/this.scale)+vbb.y;
 
     let rez = false;
     //console.log((x+w)+"    "+(y+h) +"   "+cx+"    "+cy);
