@@ -60,31 +60,21 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   isDrawing= false;
   isDragged = false;
 
+  newline: any;
+
   g_mousedown(event: any){
   
- 
-    // if(this.selected){
-    //   console.log("******************************start********************");
-    //   console.log("x:"+event.offsetX+", y:"+event.offsetY);
-    //   console.log("1/x:"+event.offsetX*(1/this.scale)+", 1/y:"+event.offsetY*(1/this.scale));
-    //   console.log("cx:"+$("#"+this.selected.id).attr("cx"));
-    //   console.log("cy:"+$("#"+this.selected.id).attr("cy"));
-    //   console.log("r:"+$("#"+this.selected.id).attr("r"));
-    //   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%stop%%%%%%%%%%%%%%%%%%%");
-    // }
- 
-
     if(event['target'].id!=""){
 
       this.startX = event.offsetX//*(this.scale);
       this.startY = event.offsetY//*(this.scale);
       
-      let vbb =  this.s.attr('viewBox');
-      let tmp_p = this.svg.createSVGPoint();
-      tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
-      tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
-      var t =this.s.rect(tmp_p.x, tmp_p.y,5,5);
-      t.attr({'fill':'orange'});
+      // let vbb =  this.s.attr('viewBox');
+      // let tmp_p = this.svg.createSVGPoint();
+      // tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
+      // tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
+      // var t =this.s.rect(tmp_p.x, tmp_p.y,5,5);
+      // t.attr({'fill':'orange'});
 
 
       if(event['target'].id=="svgCanvas"){
@@ -103,31 +93,35 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         this.s.append(this.selected);
 
         if(this.selected.tagName!=null){
-          console.log(this.selected);
-          switch(this.selected.tagName){
-            case 'circle':
+        
+          if(this.selectedShape=='line'){
 
-            let vbb =  this.s.attr('viewBox');
-            let tmp_p = this.svg.createSVGPoint();
-            tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
-            tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
-            // this.s.rect(tmp_p.x,tmp_p.y,2,2);
-              let vb  = this.s.attr('viewBox');
-              //let tmpdist = this.getLength((this.startX),(this.startY),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+          }
+          else{
+            switch(this.selected.tagName){
+              case 'circle':
+                let vbb =  this.s.attr('viewBox');
+                let tmp_p = this.svg.createSVGPoint();
+                tmp_p.x = event.offsetX*(1/this.scale)+vbb.x;
+                tmp_p.y = event.offsetY*(1/this.scale)+vbb.y; 
+              // this.s.rect(tmp_p.x,tmp_p.y,2,2);
+                let vb  = this.s.attr('viewBox');
+                //let tmpdist = this.getLength((this.startX),(this.startY),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
 
-              let tmpr = parseInt($("#"+this.selected.id).attr("r"));             
-              //tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
+                let tmpr = parseInt($("#"+this.selected.id).attr("r"));             
+                //tmp_p=tmp_p.matrixTransform(this.selected.getScreenCTM().inverse());
 
-              let tdlugosc =this.getLength((tmp_p.x),(tmp_p.y),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
-                          
-              //console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
-              if(tdlugosc>tmpr-3 && tdlugosc<tmpr+3){    
+                let tdlugosc =this.getLength((tmp_p.x),(tmp_p.y),parseInt($("#"+this.selected.id).attr("cx")),parseInt($("#"+this.selected.id).attr("cy")));
+                            
+                //console.log("dlugosc:"+tmpdist+"    "+"promien:"+tmpr + "    cx:"+this.s.select("#"+this.selected.id).attr("cx")+ "  tx"+tmp_p.x+ "  tdlugosc"+tdlugosc+" hhh:"+thhh);
+                if(tdlugosc>tmpr-3 && tdlugosc<tmpr+3){    
+                  this.resize = true;
+                }
+                break;
+              case 'rect':
+              if(this.isOnRectangleBorder(event)){
                 this.resize = true;
               }
-              break;
-            case 'rect':
-            if(this.isOnRectangleBorder(event)){
-              this.resize = true;
             }
           }
 
@@ -141,11 +135,11 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     let eventX=event.offsetX;
     let eventY=event.offsetY;
       
+    let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)*(1/this.scale);
+    let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)*(1/this.scale);
+
     if(this.selected!= null){
      
-      let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
-      let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
-
       if(this.resize){
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
@@ -168,19 +162,23 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
       }
       else{      
+
+        let tx = x;
+        let ty = y;
+
         if(this.selected.tagName!=null)
         switch(this.selected.tagName.toLowerCase()){
           case 'circle':
              let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
              let tmpcy =   parseInt($("#"+this.selected.id).attr("cy"));
 
-             $("#"+this.selected.id).attr({cx:tmpcx+x, cy: tmpcy+y});
+             $("#"+this.selected.id).attr({cx:tmpcx+tx, cy: tmpcy+ty});
                       
             break;
           case 'rect':      
             let tmprx =  parseInt($("#"+this.selected.id).attr("x"));
             let tmpry =   parseInt($("#"+this.selected.id).attr("y"));
-            $("#"+this.selected.id).attr({x:tmprx+x, y: tmpry+y});
+            $("#"+this.selected.id).attr({x:tmprx+tx, y: tmpry+ty});
           break;
         }
 
@@ -196,9 +194,6 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     }
     else{
       if(this.isDragged){      
-        let x = (Math.max(this.startX,eventX)-Math.min(this.startX,eventX))*Math.sign(eventX-this.startX)
-        let y = (Math.max(this.startY,eventY)-Math.min(this.startY,eventY))*Math.sign(eventY-this.startY)
-
         let vb =  this.s.attr('viewBox');
         this.s.attr({viewBox:(parseInt(vb.x)-x)+","+(parseInt(vb.y)-y)+","+vb.w+","+vb.h})
       }
