@@ -64,6 +64,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   g_mousedown(event: any){
   
+  
     if(event['target'].id!=""){
 
       this.startX = event.offsetX//*(this.scale);
@@ -80,7 +81,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       if(event['target'].id=="svgCanvas"){
         if(this.selectedShape!=null){
         // this.isDrawing = true;
-          this.drawElement(event);
+            this.drawElement(event);
         }
         else
         this.isDragged = true;
@@ -88,16 +89,13 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       else{
 
         this.selected = document.getElementById(event['target'].id);
+
+        //console.log(this.selected);
         
         //wyciaga element na wierzch
         this.s.append(this.selected);
 
-        if(this.selected.tagName!=null){
-        
-          if(this.selectedShape=='line'){
-
-          }
-          else{
+        if(this.selected.tagName!=null){                      
             switch(this.selected.tagName){
               case 'circle':
                 let vbb =  this.s.attr('viewBox');
@@ -123,7 +121,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
                 this.resize = true;
               }
             }
-          }
+          
 
         }      
       }
@@ -204,10 +202,13 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   }
 
   g_mouseup(event: any){
+    
+    this.selectedShape = null;
     this.isDragged = false;
     this.selected = null;
     this.resize = false;
-
+    this.newline = null;
+  
     if(this.isDrawing){
       this.isDrawing = false;
     }
@@ -218,6 +219,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   g_mousedblclick(event: any){
 
     this.test('double'); 
+    console.log('dfgdfg');
      
   }
 
@@ -239,6 +241,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
        sign = -1    
       }
     }
+
+    this.scale = Math.round(this.scale*100)/100;
    
     let tmp2_p = this.svg.createSVGPoint();
     tmp2_p.x = (event.offsetX*(1/this.scale));
@@ -269,8 +273,25 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         shape = this.s.rect(this.startX,this.startY, 40,30);
         // shape.attr({"id":"id_"+Date.now(), style:"fill='white';stroke='skyblue';stroke-width=2"});
         break;
+      case 'line':    
+        if(!this.newline){
+          let x = event.offsetX*(1/this.scale)+vb.x;
+          let y = event.offsetY*(1/this.scale)+vb.y;
+          this.newline = this.s.line(x,y,x,y);   
+          this.newline.attr({"id":"id_"+Date.now(),'stroke-width':3, 'stroke':'black'});
+          this.isDrawing = true;
+          this.addMouseListeners(this.newline);
+        }
+        else{
+          let tmp = this.newline;
+          tmp.attr({x1:tmp.attr('x1'),y1:tmp.attr('y1'), x2:event.offsetX*(1/this.scale)+vb.x, y2:event.offsetY*(1/this.scale)+vb.y});
+        }
+ 
+        break;
     }
 
+    if(this.selectedShape=='line')
+      return;
     
     //shape.attr("fill",'none');
     shape.attr({"id":"id_"+Date.now(),"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
