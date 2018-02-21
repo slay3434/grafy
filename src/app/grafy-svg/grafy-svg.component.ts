@@ -63,7 +63,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   newline: any;
 
   g_mousedown(event: any){
-  
+  console.log(event['target'].id);
   
     if(event['target'].id!=""){
 
@@ -90,7 +90,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
         this.selected = document.getElementById(event['target'].id);
 
-        //console.log(this.selected);
+        console.log(this.selected);
         
         //wyciaga element na wierzch
         this.s.append(this.selected);
@@ -164,7 +164,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         let tx = x;
         let ty = y;
 
-        if(this.selected.tagName!=null)
+        if(this.selected.tagName!=null && this.selectedShape==null)
         switch(this.selected.tagName.toLowerCase()){
           case 'circle':
              let tmpcx =  parseInt($("#"+this.selected.id).attr("cx"));
@@ -255,22 +255,27 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   selectedShape: any=null;
 
+  linesContainer: lineClass[]=[];
+
   drawElement(event: any){
     let vb =  this.s.attr('viewBox');
     //let tmp_p = this.svg.createSVGPoint();
     this.startX = event.offsetX*(1/this.scale)+vb.x;
     this.startY = event.offsetY*(1/this.scale)+vb.y; 
 
+    let tmp_id:string;
     let shape: any;
     if(true)
     switch(this.selectedShape){
       case 'circle':
         //shape = this.s.circle(this.startX, this.startY, this.getLength(this.startX, this.startY, event.offsetX, event.offsetY));
         shape = this.s.circle(this.startX, this.startY,30);
+        tmp_id = "id_circle_"+Date.now();
         // shape.attr({"id":"id_"+Date.now(),"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
         break;
       case 'rect':
         shape = this.s.rect(this.startX,this.startY, 40,30);
+        tmp_id = "id_rect_"+Date.now();
         // shape.attr({"id":"id_"+Date.now(), style:"fill='white';stroke='skyblue';stroke-width=2"});
         break;
       case 'line':    
@@ -278,9 +283,11 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
           let x = event.offsetX*(1/this.scale)+vb.x;
           let y = event.offsetY*(1/this.scale)+vb.y;
           this.newline = this.s.line(x,y,x,y);   
-          this.newline.attr({"id":"id_"+Date.now(),'stroke-width':3, 'stroke':'black'});
+          let id = "id_line_"+Date.now();
+          this.newline.attr({"id":id,'stroke-width':3, 'stroke':'black'});
           this.isDrawing = true;
           this.addMouseListeners(this.newline);
+          this.linesContainer.push(new lineClass(id , this.selected.id, null));
         }
         else{
           let tmp = this.newline;
@@ -294,7 +301,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       return;
     
     //shape.attr("fill",'none');
-    shape.attr({"id":"id_"+Date.now(),"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
+    shape.attr({"id":tmp_id,"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
 
     this.addMouseListeners(shape);
     this.s.add(shape);
@@ -403,4 +410,60 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
   //#endregion
 
+  
+}
+
+export class lineClass{
+
+  id: string;
+  startid:string;
+  stopid:string;
+
+
+  constructor(a1: string, a2:string, a3:string){
+    this.id = a1;
+    this.startid=a2;
+    this.stopid=a3;
+
+  }
+
+  public move(object: any): boolean{
+   
+    let rez = false;
+      if(object.id == this.startid || object.id==this.stopid)
+      {
+        rez = true;
+        if(object.id == this.startid){        
+          let tmp =   $('#'+this.id);
+          tmp.attr({x1:this.getTarget(object).x,y1:this.getTarget(object).y});
+        }
+        else{
+          let tmp =   $('#'+this.id);
+          tmp.attr({x2:this.getTarget(object).x,y2:this.getTarget(object).y});
+        }
+
+      }
+    return true;
+  }
+
+  getTarget(object: any): coordPoint{
+    switch(object.id.split('_')[1]){
+      case 'circle':
+        return new coordPoint(parseInt($("#"+object.id).attr("cx")), parseInt($("#"+object.id).attr("cy")));
+      case 'rect':
+        return new coordPoint(parseInt($("#"+object.id).attr("x"))+parseInt($("#"+object.id).attr("w"))/2,
+         parseInt($("#"+object.id).attr("y"))+parseInt($("#"+object.id).attr("h"))/2);
+    }
+    return null;
+  }
+}
+//klasa pomocnicza do przechowywania punktu (x,y)
+export class coordPoint{
+  x:number;
+  y:number;
+
+  constructor(x:number, y:number){
+    this.x = x;
+    this.y = y;
+  }
 }
