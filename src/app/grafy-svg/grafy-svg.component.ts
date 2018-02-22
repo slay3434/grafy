@@ -217,10 +217,10 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         //console.log('p');
         //console.log(event['target'].id);
 
-        let obj= this.getelementInPoint(event.offsetX, event.offsetX);
-        console.log('hhhh '+obj);
+        let obj= this.getelementInPoint(event.offsetX, event.offsetY);
+        console.log('hhhh '+obj.attr('id'));
         if(obj)
-        this.linesContainer.setEndLine(obj.id, this.newline);
+        this.linesContainer.setEndLine(obj.attr('id'), this.newline);
 
       }
     }
@@ -421,28 +421,29 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   }
 
   getelementInPoint(x:number, y:number){
-
+    let rez = null;
     //console.log($('#'+list[1].id).attr('id'));
     this.svgObjects.forEach(element => {
-          //console.log(element);    
-          let tmpobject = document.getElementById(element); //$('#'+element);
-          console.log(tmpobject);
-          console.log(tmpobject['cx']);
-          // if(element)
-          // switch (element.split('_')[1]){
-          //   case 'circle':
-          //     if(Snap.len(x,y,tmpobject.attr('cx'), tmpobject.attr('cy'))<=tmpobject.attr('r')){             
-          //     return tmpobject;}
-          //   break;
-          //   case 'rect':
-          //     if((parseInt(tmpobject.attr('x'))<x && parseInt(tmpobject.attr('x'))+parseInt(tmpobject.attr('w'))>x)
-          //         &&
-          //         (parseInt(tmpobject.attr('y'))<y && parseInt(tmpobject.attr('y'))+parseInt(tmpobject.attr('h'))>y)                
-          //     )
-          //     return tmpobject;
-          // }
+          var tmpobject = $('#'+element);
+       
+          //console.log($('#'+element).attr('cx'))
+          //console.log(tmpobject.attr('cx'));
+          if(element)
+          switch (element.split('_')[1]){
+            case 'circle':
+              if(Snap.len(x,y,parseInt(tmpobject.attr('cx')), parseInt(tmpobject.attr('cy')))<=parseInt(tmpobject.attr('r')))
+                rez = tmpobject;                     
+                break;
+            case 'rect':
+              if((parseInt(tmpobject.attr('x'))<x && parseInt(tmpobject.attr('x'))+parseInt(tmpobject.attr('w'))>x)
+                  &&
+                  (parseInt(tmpobject.attr('y'))<y && parseInt(tmpobject.attr('y'))+parseInt(tmpobject.attr('h'))>y)                
+              )
+                rez = tmpobject
+                break;
+          }
     });
-    return null;
+    return rez;
   }
 
   
@@ -473,6 +474,7 @@ export class linesContainerClass{
   linesContainer: lineClass[]=[];
 
   addline(line: lineClass){
+    
     this.linesContainer.push(line);
   }
 
