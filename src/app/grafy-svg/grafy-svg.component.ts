@@ -189,6 +189,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
           break;
         }
 
+        this.linesContainer.updatePos($("#"+this.selected.id));
         // var m =(this.s.select("#"+this.selected.id)).transform().localMatrix.split();
         // for(var i in m)
         //   console.log("m:"+m[i]);
@@ -218,7 +219,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         //console.log(event['target'].id);
 
         let obj= this.getelementInPoint(event.offsetX, event.offsetY);
-        console.log('hhhh '+obj.attr('id'));
+        //console.log('hhhh '+obj.attr('id'));
         if(obj)
         this.linesContainer.setEndLine(obj.attr('id'), this.newline);
 
@@ -474,7 +475,7 @@ export class linesContainerClass{
   linesContainer: lineClass[]=[];
 
   addline(line: lineClass){
-    
+
     this.linesContainer.push(line);
   }
 
@@ -486,9 +487,10 @@ export class linesContainerClass{
       this.linesContainer.splice(index,1);
   }
 
-  setEndLine(endid: any, line: lineClass){
-    let tmp = this.linesContainer.filter(o=>o.id==line.id)[0];
-    tmp.stopid = endid;
+  setEndLine(endid: any, line: any){
+    let tmp = this.linesContainer.filter(o=>o.id==line.attr('id'))[0]; 
+    if(tmp)
+      tmp.stopid = endid;
   }
 
   updatePos(object: any){
@@ -514,12 +516,13 @@ export class lineClass{
   }
 
   public move(object: any): boolean{
-   
+    //console.log('yyy'+object.attr('id'));
+  
     let rez = false;
-      if(object.id == this.startid || object.id==this.stopid)
+      if(object.attr('id') == this.startid || object.attr('id')==this.stopid)
       {
         rez = true;
-        if(object.id == this.startid){        
+        if(object.attr('id') == this.startid){        
           let tmp =   $('#'+this.id);
           tmp.attr({x1:this.getTarget(object).x,y1:this.getTarget(object).y});
         }
@@ -533,12 +536,13 @@ export class lineClass{
   }
 
   getTarget(object: any): coordPoint{
-    switch(object.id.split('_')[1]){
+
+    switch(object.attr('id').split('_')[1]){
       case 'circle':
-        return new coordPoint(parseInt($("#"+object.id).attr("cx")), parseInt($("#"+object.id).attr("cy")));
+        return new coordPoint(parseInt(object.attr("cx")), parseInt(object.attr("cy")));
       case 'rect':
-        return new coordPoint(parseInt($("#"+object.id).attr("x"))+parseInt($("#"+object.id).attr("w"))/2,
-         parseInt($("#"+object.id).attr("y"))+parseInt($("#"+object.id).attr("h"))/2);
+        return new coordPoint(parseInt(object.attr("x"))+parseInt(object.attr("w"))/2,
+         parseInt(object.attr("y"))+parseInt(object.attr("h"))/2);
     }
     return null;
   }
