@@ -35,6 +35,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     this.svg = document.getElementById('svgCanvas');
     this.orgVBwidth = $("#svgCanvas").width();
     this.orgVBheight=$("#svgCanvas").height();
+   
+  
 
     this.s.attr({viewBox:0+","+0+","+this.orgVBwidth+","+this.orgVBheight})
     
@@ -51,9 +53,11 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(){
+    document.addEventListener('keyup', (event:any)=>{this.g_keypress(event)});
   }
 
   selected: any=null;
+  lastSelected:any =null;
   startX: any=0;
   startY: any=0;
   resize: boolean = false;
@@ -64,7 +68,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
   newline: any;
 
   g_mousedown(event: any){
-  //console.log(event['target'].id);
+  // console.log(this.selected);
   
     if(event['target'].id!=""){
 
@@ -90,9 +94,9 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
       else{
 
         this.selected = document.getElementById(event['target'].id);
+        this.lastSelected = this.selected;
 
         // console.log(event['target'].id);
-        // console.log( this.selected);
 
         if(this.selectedShape == 'line'){
           // /console.log('1');
@@ -100,8 +104,11 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
           return;
         }
         
+        this.isDragged = true;
+
         //wyciaga element na wierzch
-        this.s.append(this.selected);
+        if(!this.selected.id.includes('line'))
+          this.s.append(this.selected);
 
         if(this.selected.tagName!=null){                      
             switch(this.selected.tagName){
@@ -168,7 +175,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         }
 
       }
-      else{      
+      else if(this.isDragged){      
 
         let tx = x;
         let ty = y;
@@ -219,16 +226,23 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         //console.log(event['target'].id);
 
         let obj= this.getelementInPoint(event.offsetX, event.offsetY);
+        //console.log(obj);
         //console.log('hhhh '+obj.attr('id'));
         if(obj)
         this.linesContainer.setEndLine(obj.attr('id'), this.newline);
+        
+        this.s.append(Snap.select(obj.attr('id')));
+
+       // console.log(obj.attr('id'));
 
       }
     }
 
     this.selectedShape = null;
-    this.isDragged = false;
+    // if(this.isDragged)
     this.selected = null;
+    this.isDragged = false;
+
     this.resize = false;
     this.newline = null;
   
@@ -276,6 +290,21 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     //this.s.transform('s'+this.scale);
   }
 
+  g_keypress(event: any){   
+    //console.log('dfdf'+this.selected.id);
+    if(event.keyCode == 46){
+      if(this.lastSelected.id.includes('line')){
+        this.linesContainer.removeline(this.lastSelected);
+        this.lastSelected = null;
+      }
+      else{
+        this.linesContainer.removeFromElement(this.lastSelected);
+        $('#'+this.lastSelected.id).remove();
+      }
+
+    }  
+  }
+
   selectedShape: any=null;
 
   linesContainer: any = new linesContainerClass();
@@ -298,6 +327,7 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
         break;
       case 'rect':
         shape = this.s.rect(this.startX,this.startY, 40,30);
+        shape.attr({'rx':"5", 'ry':"5"});
         tmp_id = "id_rect_"+Date.now();
         // shape.attr({"id":"id_"+Date.now(), style:"fill='white';stroke='skyblue';stroke-width=2"});
         break;
@@ -313,6 +343,8 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
           //this.addMouseListeners(this.newline);
           let start = this.selected?this.selected.id:null;
           this.linesContainer.addline(new lineClass(id , start, null));
+          if(this.selected)
+            this.s.append(this.selected);
        
         }
         else{
@@ -326,9 +358,10 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
 
     if(this.selectedShape=='line')
       return;
+
     this.svgObjects.push(tmp_id);
     //shape.attr("fill",'none');
-    shape.attr({"id":tmp_id,"fill":'white', 'stroke': 'skyblue', 'stroke-width':2});
+    shape.attr({"id":tmp_id,"fill":'white', 'stroke': 'skyblue', 'stroke-width':1});
     
     this.addMouseListeners(shape);
     this.s.add(shape);
@@ -350,11 +383,24 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     object.dblclick((e: any)=>{this.g_mousedblclick(e)});
     object.mousedown((e: any)=>{this.g_mousedown(e)});
     //object.mouseup((e:any)=>{this.g_mouseup(e)});
+
+    
   }
 
   wyczysc(){
     this.s.clear();
   }
+
+  saveImage(){
+		// var a      = document.createElement('a');
+		// a.href     = 'data:image/svg+xml;utf8,' + encodeURI($('#svgCanvas')[0].outerHTML);
+		// a.download = 'plot.svg';
+		// a.target   = '_blank';
+    // document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    
+
+
+	}
 
 
   //#region help functions
@@ -425,10 +471,9 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
     let rez = null;
     //console.log($('#'+list[1].id).attr('id'));
     this.svgObjects.forEach(element => {
+    
           var tmpobject = $('#'+element);
-       
-          //console.log($('#'+element).attr('cx'))
-          //console.log(tmpobject.attr('cx'));
+          
           if(element)
           switch (element.split('_')[1]){
             case 'circle':
@@ -436,14 +481,15 @@ export class GrafySvgComponent implements OnInit, AfterViewInit {
                 rez = tmpobject;                     
                 break;
             case 'rect':
-              if((parseInt(tmpobject.attr('x'))<x && parseInt(tmpobject.attr('x'))+parseInt(tmpobject.attr('w'))>x)
+              if((parseInt(tmpobject.attr('x'))<x && parseInt(tmpobject.attr('x'))+parseInt(tmpobject.attr('width'))>x)
                   &&
-                  (parseInt(tmpobject.attr('y'))<y && parseInt(tmpobject.attr('y'))+parseInt(tmpobject.attr('h'))>y)                
-              )
-                rez = tmpobject
+                  ((parseInt(tmpobject.attr('y'))<y && parseInt(tmpobject.attr('y'))+parseInt(tmpobject.attr('height'))>y))
+              )      
+                rez = tmpobject;
                 break;
           }
     });
+    console.log(rez);
     return rez;
   }
 
@@ -479,12 +525,27 @@ export class linesContainerClass{
     this.linesContainer.push(line);
   }
 
-  removeline(line: lineClass){
+  removeline(line: any){
+
     let tmp = this.linesContainer.filter(o=>o.id==line.id)[0];
 
     let index = this.linesContainer.indexOf(tmp)
-    if(index>-1)
+    if(index>-1){
+      $('#'+line.id).remove();
       this.linesContainer.splice(index,1);
+     
+    }
+  }
+
+  removeFromElement(obj: any){
+    let list: any []=[];
+    for(let i in this.linesContainer){
+      if(this.linesContainer[i].startid == obj.id || this.linesContainer[i].stopid == obj.id)      
+        list.push(this.linesContainer[i]);
+    }
+
+    for(let i in list)
+    this.removeline(list[i]);
   }
 
   setEndLine(endid: any, line: any){
@@ -496,6 +557,7 @@ export class linesContainerClass{
   updatePos(object: any){
     for(let i in this.linesContainer)
       this.linesContainer[i].move(object);
+      // this.s.append(this.selected);
   }
 
 
@@ -541,11 +603,12 @@ export class lineClass{
       case 'circle':
         return new coordPoint(parseInt(object.attr("cx")), parseInt(object.attr("cy")));
       case 'rect':
-        return new coordPoint(parseInt(object.attr("x"))+parseInt(object.attr("w"))/2,
-         parseInt(object.attr("y"))+parseInt(object.attr("h"))/2);
+        return new coordPoint(parseInt(object.attr("x"))+parseInt(object.attr("width"))/2,
+         parseInt(object.attr("y"))+parseInt(object.attr("height"))/2);
     }
     return null;
   }
+
 }
 //klasa pomocnicza do przechowywania punktu (x,y)
 export class coordPoint{
